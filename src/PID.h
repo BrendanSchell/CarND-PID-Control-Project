@@ -18,6 +18,11 @@ public:
   double Kd;
 
   /*
+  * Intermediate Error Calcs
+  */
+  double prev_error;
+  double total_error;
+  /*
   * Constructor
   */
   PID();
