@@ -31,16 +31,16 @@ std::string hasData(std::string s) {
 int main()
 {
   uWS::Hub h;
-
   PID pid;
-  // TODO: Initialize the pid variable.
-  pid.Init(1,0,0);
+  // Initialize the pid variable.
+  pid.Init(0.2, 3., 0.01);
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
     if (length && length > 2 && data[0] == '4' && data[1] == '2')
     {
+      
       auto s = hasData(std::string(data));
       if (s != "") {
         auto j = json::parse(s);
@@ -51,22 +51,20 @@ int main()
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
-          /*
-          * TODO: Calcuate steering value here, remember the steering value is
-          * [-1, 1].
-          * NOTE: Feel free to play around with the throttle and speed. Maybe use
-          * another PID controller to control the speed!
-          */
 
           // update errors
           pid.UpdateError(cte);
-
+          std::cout << pid.it << "," << pid.Kp << "," << pid.Kd << "," << pid.Ki;
           // calculate new steering value
           steer_value = pid.TotalError();
 
-          // set d_error to hold the previous error after update
-          pid.d_error = cte;
-          
+          // correct steering value if value outside of range [-1,1]
+          if (steer_value > 1){
+            steer_value = 1.;
+          }
+          if (steer_value < -1){
+            steer_value = -1.;
+          }
 
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
